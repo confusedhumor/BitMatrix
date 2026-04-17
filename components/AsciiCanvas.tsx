@@ -8,9 +8,10 @@ interface AsciiCanvasProps {
   options: AsciiOptions;
   onCapture: (imageData: string) => void;
   mediaFile: File | null;
+  isControlExpanded: boolean;
 }
 
-export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, mediaFile }) => {
+export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, mediaFile, isControlExpanded }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -454,7 +455,7 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
         <canvas ref={canvasRef} className="block" />
         
         {/* Floating Controls Container */}
-        <div className="absolute bottom-[300px] md:bottom-32 left-1/2 transform -translate-x-1/2 flex items-center gap-4 md:gap-6 z-40 w-full justify-center">
+        <div className={`absolute left-1/2 transform -translate-x-1/2 flex items-center gap-4 md:gap-6 z-40 w-full justify-center transition-all duration-300 ${isControlExpanded ? 'bottom-[330px] md:bottom-32' : 'bottom-20 md:bottom-32'}`}>
             
             {/* If uploaded media is active, show Unified Process Button */}
             {mediaFile && (

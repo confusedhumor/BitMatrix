@@ -22,6 +22,7 @@ const App: React.FC = () => {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [isPanelExpanded, setIsPanelExpanded] = useState(false);
 
   const handleCapture = useCallback(async (imageData: string) => {
     setIsAnalyzing(true);
@@ -62,11 +63,11 @@ const App: React.FC = () => {
 
       {/* Main Canvas Area */}
       <main className="flex-grow relative z-10">
-        <AsciiCanvas options={options} onCapture={handleCapture} mediaFile={mediaFile} />
+        <AsciiCanvas options={options} onCapture={handleCapture} mediaFile={mediaFile} isControlExpanded={isPanelExpanded} />
       </main>
 
       {/* Controls */}
-      <ControlPanel options={options} setOptions={setOptions} setMediaFile={setMediaFile} />
+      <ControlPanel options={options} setOptions={setOptions} setMediaFile={setMediaFile} isExpanded={isPanelExpanded} setIsExpanded={setIsPanelExpanded} />
 
       {/* Loading/Analysis Modal */}
       {isModalOpen && (

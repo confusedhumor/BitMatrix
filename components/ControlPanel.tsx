@@ -1,15 +1,17 @@
 import React, { useRef } from 'react';
 import { AsciiOptions, DENSITY_MAPS } from '../types';
-import { Sliders, Monitor, Type, Palette, Upload, Crop } from 'lucide-react';
+import { Sliders, Monitor, Type, Palette, Upload, Crop, ChevronUp, ChevronDown } from 'lucide-react';
 import { playButtonSound } from '../utils/soundEffects';
 
 interface ControlPanelProps {
   options: AsciiOptions;
   setOptions: React.Dispatch<React.SetStateAction<AsciiOptions>>;
   setMediaFile: (file: File | null) => void;
+  isExpanded: boolean;
+  setIsExpanded: (expanded: boolean) => void;
 }
 
-export const ControlPanel: React.FC<ControlPanelProps> = ({ options, setOptions, setMediaFile }) => {
+export const ControlPanel: React.FC<ControlPanelProps> = ({ options, setOptions, setMediaFile, isExpanded, setIsExpanded }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,8 +30,15 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ options, setOptions,
   }
 
   return (
-    <div className="absolute bottom-0 w-full bg-black/80 border-t border-green-900/50 backdrop-blur-sm p-4 z-30 transition-all duration-300">
-      <div className="max-w-6xl mx-auto flex flex-wrap gap-6 justify-center items-center text-green-500 text-xs font-mono">
+    <div className={`absolute bottom-0 w-full bg-black/80 border-t border-green-900/50 backdrop-blur-sm z-30 transition-all duration-300 ${isExpanded ? 'p-4' : 'p-0 md:p-4'}`}>
+      <button 
+        onClick={() => { playButtonSound(); setIsExpanded(!isExpanded); }} 
+        className="w-full flex justify-center items-center py-2 md:hidden border-b border-green-900/30 text-green-500 bg-black/50 hover:bg-green-900/40 transition-colors"
+      >
+        <span className="text-[10px] uppercase tracking-widest mr-2 font-mono">{isExpanded ? 'Hide Controls' : 'Show Controls'}</span>
+        {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+      </button>
+      <div className={`max-w-6xl mx-auto gap-6 justify-center items-center text-green-500 text-xs font-mono ${isExpanded ? 'flex flex-wrap pt-4 md:pt-0' : 'hidden md:flex md:flex-wrap'}`}>
         
         {/* Upload Media */}
         <div className="flex flex-col gap-1 w-32 justify-center">
