@@ -454,7 +454,7 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
         <canvas ref={canvasRef} className="block" />
         
         {/* Floating Controls Container */}
-        <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 flex items-center gap-6 z-40">
+        <div className="absolute bottom-[300px] md:bottom-32 left-1/2 transform -translate-x-1/2 flex items-center gap-4 md:gap-6 z-40 w-full justify-center">
             
             {/* If uploaded media is active, show Unified Process Button */}
             {mediaFile && (

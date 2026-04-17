@@ -46,7 +46,7 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden flex flex-col">
+    <div className="relative w-full h-[100dvh] bg-black overflow-hidden flex flex-col font-mono selection:bg-green-500/30">
       {/* Header / HUD */}
       <header className="absolute top-0 left-0 w-full p-4 z-20 flex justify-between items-center pointer-events-none bg-gradient-to-b from-black/80 to-transparent">
         <div className="flex items-center gap-2 text-green-500 pointer-events-auto">
