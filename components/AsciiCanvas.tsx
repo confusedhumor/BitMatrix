@@ -54,8 +54,8 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
           try {
             stream = await navigator.mediaDevices.getUserMedia({ 
               video: { 
-                width: { ideal: 640 }, 
-                height: { ideal: 480 }, 
+                width: { ideal: 3840 }, 
+                height: { ideal: 2160 }, 
                 facingMode
               } 
             });
