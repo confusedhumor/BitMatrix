@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { AsciiOptions } from '../types';
 import { getAsciiChar } from '../utils/asciiConverter';
 import { playStartupSound, playScanSound, startAmbientHum, stopAmbientHum } from '../utils/soundEffects';
-import { ScanEye, Camera, Download, Loader2 } from 'lucide-react';
+import { ScanEye, Camera, Download, Loader2, SwitchCamera } from 'lucide-react';
 
 interface AsciiCanvasProps {
   options: AsciiOptions;
@@ -21,6 +21,7 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -55,7 +56,7 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
               video: { 
                 width: { ideal: 640 }, 
                 height: { ideal: 480 }, 
-                facingMode: 'user' 
+                facingMode
               } 
             });
             
@@ -76,7 +77,7 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
     }
 
     return cleanup;
-  }, [mediaFile]);
+  }, [mediaFile, facingMode]);
 
   // Handle Canvas Resizing
   useEffect(() => {
@@ -484,13 +485,24 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
 
             {/* Snapshot fallback for Camera Mode */}
             {!mediaFile && (
-              <button 
-                  onClick={handleScreenshotClick}
-                  className="bg-black/60 hover:bg-green-900/80 text-green-400 border border-green-500/50 p-4 rounded-full backdrop-blur-md transition-all active:scale-95 hover:scale-105 hover:shadow-[0_0_15px_rgba(0,255,0,0.3)]"
-                  title="Save Snapshot"
-              >
-                  <Camera className="w-6 h-6" />
-              </button>
+              <>
+                <button 
+                    onClick={handleScreenshotClick}
+                    className="bg-black/60 hover:bg-green-900/80 text-green-400 border border-green-500/50 p-4 rounded-full backdrop-blur-md transition-all active:scale-95 hover:scale-105 hover:shadow-[0_0_15px_rgba(0,255,0,0.3)]"
+                    title="Save Snapshot"
+                >
+                    <Camera className="w-6 h-6" />
+                </button>
+
+                {/* Switch Camera for Mobile */}
+                <button 
+                    onClick={() => setFacingMode(prev => prev === 'user' ? 'environment' : 'user')}
+                    className="md:hidden bg-black/60 hover:bg-green-900/80 text-green-400 border border-green-500/50 p-4 rounded-full backdrop-blur-md transition-all active:scale-95 hover:scale-105 hover:shadow-[0_0_15px_rgba(0,255,0,0.3)]"
+                    title="Switch Camera"
+                >
+                    <SwitchCamera className="w-6 h-6" />
+                </button>
+              </>
             )}
         </div>
     </div>
