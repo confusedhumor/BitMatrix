@@ -52,12 +52,14 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
         playStartupSound();
     } else {
         const startCamera = async () => {
+          // Small delay allows mobile hardware to fully release the previous camera lens
+          await new Promise(resolve => setTimeout(resolve, 500));
           try {
             stream = await navigator.mediaDevices.getUserMedia({ 
               video: { 
-                width: { ideal: 3840 }, 
-                height: { ideal: 2160 }, 
-                facingMode
+                width: { ideal: 1920 }, 
+                height: { ideal: 1080 }, 
+                facingMode: facingMode === 'environment' ? { exact: 'environment' } : 'user'
               } 
             });
 
