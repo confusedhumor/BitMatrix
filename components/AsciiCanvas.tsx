@@ -59,6 +59,20 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
                 facingMode
               } 
             });
+
+            // Try to enable continuous auto-focus if supported
+            const track = stream.getVideoTracks()[0];
+            const capabilities = track.getCapabilities ? track.getCapabilities() : ({} as any);
+            const focusModes = (capabilities as any).focusMode;
+            if (focusModes && Array.isArray(focusModes) && focusModes.includes('continuous')) {
+                try {
+                    await track.applyConstraints({
+                        advanced: [{ focusMode: 'continuous' } as any]
+                    });
+                } catch (consoleError) {
+                    console.warn("Could not apply continuous focusMode", consoleError);
+                }
+            }
             
             if (videoRef.current) {
               videoRef.current.src = "";
