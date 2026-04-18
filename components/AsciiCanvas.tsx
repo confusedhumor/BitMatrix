@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { AsciiOptions } from '../types';
 import { getAsciiChar } from '../utils/asciiConverter';
 import { playStartupSound, playScanSound, startAmbientHum, stopAmbientHum } from '../utils/soundEffects';
-import { ScanEye, Camera, Download, Loader2, SwitchCamera } from 'lucide-react';
+import { ScanEye, Camera, Download, Loader2, SwitchCamera, Video, Square } from 'lucide-react';
 
 interface AsciiCanvasProps {
   options: AsciiOptions;
@@ -23,6 +23,8 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
   const recordedChunksRef = useRef<Blob[]>([]);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [focusPoint, setFocusPoint] = useState<{ x: number, y: number } | null>(null);
+  const [isRecordingLive, setIsRecordingLive] = useState(false);
+  const liveRecorderRef = useRef<MediaRecorder | null>(null);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -477,6 +479,59 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
     }
   };
 
+  const handleLiveRecordClick = () => {
+    if (isRecordingLive) {
+      if (liveRecorderRef.current) liveRecorderRef.current.stop();
+      setIsRecordingLive(false);
+      return;
+    }
+
+    if (!canvasRef.current) return;
+
+    try {
+      playScanSound();
+      const canvasStream = (canvasRef.current as any).captureStream(30);
+      let finalStream = canvasStream;
+      
+      if (videoRef.current && videoRef.current.srcObject) {
+         const mediaStream = videoRef.current.srcObject as MediaStream;
+         const audioTracks = mediaStream.getAudioTracks();
+         if (audioTracks.length > 0) {
+             finalStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioTracks ]);
+         }
+      }
+
+      const options = { mimeType: 'video/webm; codecs=vp9' };
+      const supportedType = MediaRecorder.isTypeSupported(options.mimeType) ? options.mimeType : 'video/mp4';
+      
+      const recorder = new MediaRecorder(finalStream, { mimeType: supportedType });
+      const chunks: Blob[] = [];
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: supportedType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `bitmatrix_live_record_${Date.now()}.${supportedType === 'video/mp4' ? 'mp4' : 'webm'}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      };
+      
+      liveRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecordingLive(true);
+    } catch (err) {
+      console.error("Failed to start live recording:", err);
+      setIsRecordingLive(false);
+    }
+  };
+
   return (
     <div className="relative w-full h-full bg-black">
         {error && (
@@ -564,6 +619,15 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
                     title="Save Snapshot"
                 >
                     <Camera className="w-6 h-6" />
+                </button>
+
+                {/* Record Video */}
+                <button 
+                    onClick={handleLiveRecordClick}
+                    className={`bg-black/60 border p-4 rounded-full backdrop-blur-md transition-all active:scale-95 hover:scale-105 hover:shadow-[0_0_15px_rgba(0,255,0,0.3)] ${isRecordingLive ? 'bg-red-900/50 border-red-500 text-red-500 animate-pulse' : 'hover:bg-green-900/80 text-green-400 border-green-500/50'}`}
+                    title={isRecordingLive ? "Stop Recording" : "Record Video"}
+                >
+                    {isRecordingLive ? <Square className="w-6 h-6" fill="currentColor" /> : <Video className="w-6 h-6" />}
                 </button>
 
                 {/* Switch Camera for Mobile */}
