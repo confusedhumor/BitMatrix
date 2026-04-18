@@ -22,6 +22,7 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
   const [isProcessing, setIsProcessing] = useState(false);
   const recordedChunksRef = useRef<Blob[]>([]);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const [focusPoint, setFocusPoint] = useState<{ x: number, y: number } | null>(null);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -437,6 +438,38 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
     }
   };
 
+  const handleCanvasClick = async (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (mediaFile || !videoRef.current) return;
+    
+    // Visual focus indicator
+    setFocusPoint({ x: e.clientX, y: e.clientY });
+    setTimeout(() => setFocusPoint(null), 1500);
+
+    const stream = videoRef.current.srcObject as MediaStream;
+    if (!stream) return;
+    
+    const track = stream.getVideoTracks()[0];
+    if (!track || !track.getCapabilities) return;
+    
+    const capabilities = track.getCapabilities() as any;
+    if (capabilities.pointsOfInterest) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        let x = (e.clientX - rect.left) / rect.width;
+        let y = (e.clientY - rect.top) / rect.height;
+        
+        // Front camera mirrors X naturally, so invert
+        if (facingMode === 'user') x = 1 - x;
+        
+        try {
+            await track.applyConstraints({
+                advanced: [{ pointsOfInterest: [{ x, y }] } as any]
+            });
+        } catch (err) {
+            console.warn("Focus pointsOfInterest failed:", err);
+        }
+    }
+  };
+
   return (
     <div className="relative w-full h-full bg-black">
         {error && (
@@ -467,7 +500,25 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
             alt="Source"
         />
         <canvas ref={hiddenCanvasRef} className="hidden" />
-        <canvas ref={canvasRef} className="block" />
+        <canvas 
+            ref={canvasRef} 
+            className="block cursor-crosshair touch-none" 
+            onClick={handleCanvasClick}
+        />
+        
+        {/* Focus Indicator */}
+        {focusPoint && (
+            <div 
+                className="absolute border border-green-400 pointer-events-none z-[60] w-16 h-16 -translate-x-1/2 -translate-y-1/2 animate-[pulse_1.5s_ease-out] shadow-[0_0_10px_rgba(0,255,0,0.5)] bg-green-500/10"
+                style={{ left: focusPoint.x, top: focusPoint.y }}
+            >
+                {/* Corner brackets for aesthetic */}
+                <span className="absolute top-0 left-0 border-t-2 border-l-2 border-green-400 w-2 h-2" />
+                <span className="absolute top-0 right-0 border-t-2 border-r-2 border-green-400 w-2 h-2" />
+                <span className="absolute bottom-0 left-0 border-b-2 border-l-2 border-green-400 w-2 h-2" />
+                <span className="absolute bottom-0 right-0 border-b-2 border-r-2 border-green-400 w-2 h-2" />
+            </div>
+        )}
         
         {/* Floating Controls Container */}
         <div className={`absolute left-1/2 transform -translate-x-1/2 flex items-center gap-4 md:gap-6 z-40 w-full justify-center transition-all duration-300 ${isControlExpanded ? 'bottom-[330px] md:bottom-32' : 'bottom-20 md:bottom-32'}`}>
