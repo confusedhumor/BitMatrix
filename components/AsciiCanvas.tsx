@@ -169,13 +169,17 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
         sourceElement = video;
       }
 
-      const ctx = canvas.getContext('2d', { alpha: false });
-      const hiddenCtx = hiddenCanvas.getContext('2d', { willReadFrequently: true });
+      const ctx = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D;
+      const hiddenCtx = hiddenCanvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
 
       if (!ctx || !hiddenCtx) {
           animationRef.current = requestAnimationFrame(renderLoop);
           return;
       }
+
+      // Disable smoothing for razor-sharp edge preservation (excellent for filming screens/text)
+      ctx.imageSmoothingEnabled = false;
+      hiddenCtx.imageSmoothingEnabled = false;
 
       const charHeight = options.fontSize;
       const charWidth = charHeight * 0.6; 
@@ -265,7 +269,8 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
       }
 
       const prev = prevFrameRef.current;
-      const inertia = (mediaFile && mediaFile.type.startsWith('image/')) ? 0.0 : 0.75; 
+      // Reduced inertia from 0.75 down to 0.15 to virtually eliminate ghosting/temporal smudging of fine text details
+      const inertia = (mediaFile && mediaFile.type.startsWith('image/')) ? 0.0 : 0.15; 
 
       for (let i = 0; i < pixelCount; i++) {
         const target = data[i];
