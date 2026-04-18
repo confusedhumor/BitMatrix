@@ -210,7 +210,7 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.save();
-        if (!mediaFile) {
+        if (!mediaFile && facingMode === 'user') {
           ctx.translate(canvas.width, 0);
           ctx.scale(-1, 1);
         }
@@ -224,7 +224,7 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
       hiddenCtx.fillStyle = '#000000';
       hiddenCtx.fillRect(0, 0, cols, rows);
 
-      if (!mediaFile) {
+      if (!mediaFile && facingMode === 'user') {
         hiddenCtx.translate(cols, 0);
         hiddenCtx.scale(-1, 1);
       }
@@ -320,7 +320,7 @@ export const AsciiCanvas: React.FC<AsciiCanvasProps> = ({ options, onCapture, me
             cancelAnimationFrame(animationRef.current);
         }
     };
-  }, [options, mediaFile]);
+  }, [options, mediaFile, facingMode]);
 
   const handleCaptureClick = () => {
     if (canvasRef.current && !isProcessing) {
